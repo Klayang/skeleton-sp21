@@ -204,22 +204,22 @@ public class Commands {
         Utils.writeObject(Utils.join(Repository.GITLET_DIR, "staging_area"), new Stage());
     }
 
-//    /**
-//     * Helper method called by merge, to find the first common ancestor of 2 commits
-//     *  See Leetcode offer52 for detail of solution
-//     */
-//    private static Commit findFirstCommonAncestor(Commit commitA, Commit commitB) {
-//        Commit h1 = commitA, h2 = commitB;
-//        while (h1 != null || h2 != null) {
-//            if (h1.equals(h2)) break;
-//            if (h1 == null) h1 = commitB;
-//            else h1 = h1.parent;
-//            if (h2 == null) h2 = commitA;
-//            else h2 = h2.parent;
-//        }
-//        return h1;
-//    }
-//
+    /**
+     * Helper method called by merge, to find the first common ancestor of 2 commits
+     *  See Leetcode offer52 for detail of solution
+     */
+    private static Commit findFirstCommonAncestor(Commit commitA, Commit commitB) {
+        Commit h1 = commitA, h2 = commitB;
+        while (h1 != null || h2 != null) {
+            if (h1.equals(h2)) break;
+            if (h1 == null) h1 = commitB;
+            else h1 = h1.parent;
+            if (h2 == null) h2 = commitA;
+            else h2 = h2.parent;
+        }
+        return h1;
+    }
+
 //    /**
 //     * Helper method called by merge to handle the 3rd case: divergence
 //     */
@@ -404,7 +404,7 @@ public class Commands {
      */
     static void commit(String[] args) throws IOException {
         // check message of the commit exists
-        if (args.length == 1) GitletException.handleException("Please enter a commit message.");
+        if (args.length == 1 || args[1].length() == 0) GitletException.handleException("Please enter a commit message.");
         if (args.length > 2) GitletException.handleException("Incorrect operands.");
 
         // read info about last commit and staging area
@@ -451,7 +451,6 @@ public class Commands {
         // exception handling
         if (args.length != 2) GitletException.handleException("Incorrect operands.");
         String fileName = args[1];
-        checkFileExists(fileName);
         Commit head = getHeadCommit();
         Stage stage = getStagingArea();
         if (!head.containsFile(fileName) && !stage.hasFile(fileName))
@@ -459,7 +458,7 @@ public class Commands {
 
         // remove file from staging area and the working directory
         if (stage.hasFile(fileName)) stage.unstageFileIfAdded(fileName);
-        stage.addFileToRemove(fileName);
+        if (head.containsFile(fileName)) stage.addFileToRemove(fileName);
         Utils.restrictedDelete(fileName);
 
         // write staging area back to disk
@@ -641,17 +640,17 @@ public class Commands {
         writeCommitTree(commitTree);
     }
 
-//    /**
-//     * Execute reset command:
-//     *  1. checkout each file in the given commit
-//     */
-//    static void reset(String[] args) throws IOException {
-//        if (args.length != 2) GitletException.handleIncorrectOperands();
-//        String commitID = args[1];
-//        Commit commit = getCommit(commitID);
-//        checkoutCommit(commit);
-//    }
-//
+    /**
+     * Execute reset command:
+     *  1. checkout each file in the given commit
+     */
+    static void reset(String[] args) throws IOException {
+        if (args.length != 2) GitletException.handleException("No command with that name exists.");
+        String commitID = args[1];
+        Commit commit = getCommit(commitID);
+        checkoutCommit(commit);
+    }
+
 //    /**
 //     * Execute merge command:
 //     *  1. If HEAD is the split point, fast-forward to the other branch
@@ -683,4 +682,4 @@ public class Commands {
 //            System.out.println("Given branch is an ancestor of the current branch.");
 //        else handleCoreMerge(head, branchCommit, splitCommit);
 //    }
-    }
+}

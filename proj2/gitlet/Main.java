@@ -52,12 +52,12 @@ public class Main {
                 case "rm-branch":
                     rmBranch(args);
                     break;
-//            case "reset":
-//                reset(args);
-//                break;
-//            case "merge":
-//                merge(args);
-//                break;
+                case "reset":
+                    reset(args);
+                    break;
+//                case "merge":
+//                    merge(args);
+//                    break;
                 default:
                     GitletException.handleException("No command with that name exists.");
             }

@@ -397,4 +397,29 @@ public class TestCommands {
         args = new String[]{"status"};
         status(args);
     }
+
+    @Test
+    /**
+     * [Test 22] work flow before this test:
+     * 1. pass Test03
+     */
+    public void testAddAndRm() throws IOException {
+        moreTestAdd1();
+        String[] args = new String[]{"rm", "hello.txt"};
+        rm(args);
+        assertFalse(TEST_FILE_HELLO.exists());
+        args = new String[]{"status"};
+        status(args);
+    }
+
+    @Test
+    /**
+     * [Test 23] work flow before this test:
+     * 1. pass Test03
+     */
+    public void testEmptyCommit() throws IOException {
+        moreTestAdd1();
+        String[] args = new String[]{"commit", ""};
+        commit(args);
+    }
 }
