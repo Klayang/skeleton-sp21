@@ -220,37 +220,37 @@ public class Commands {
         return h1;
     }
 
-//    /**
-//     * Helper method called by merge to handle the 3rd case: divergence
-//     */
-//    private static void handleCoreMerge (Commit head, Commit branch, Commit split) throws IOException {
-//        Set<String> files = getFileSet(head, branch, split);
-//        for (String fileName: files) {
-//            String contentInSplit = split.getFileContent(fileName), contentInHead = head.getFileContent(fileName),
-//                    contentInBranch = branch.getFileContent(fileName);
-//
-//            if (!split.containsFile(fileName)) {
-//                if (branch.containsFile(fileName) && !head.containsFile(fileName)) checkoutFile(branch, fileName);
-//                if (branch.containsFile(fileName) && head.containsFile(fileName) &&
-//                        !contentInBranch.equals(contentInHead)) resolveConflict(fileName, head, branch);
-//            }
-//            else if (!head.containsFile(fileName)) {
-//                if (branch.containsFile(fileName) && !contentInBranch.equals(contentInSplit))
-//                    resolveConflict(fileName, head, branch);
-//            }
-//            else if (!branch.containsFile(fileName)) {
-//                if (contentInHead.equals(contentInSplit)) rm(new String[]{"rm", fileName});
-//                else resolveConflict(fileName, head, branch);
-//            }
-//            else {
-//                if (contentInSplit.equals(contentInHead) && !contentInSplit.equals(contentInBranch))
-//                    checkoutFile(branch, fileName);
-//                else if (!contentInSplit.equals(contentInHead) && !contentInSplit.equals(contentInBranch) &&
-//                        !contentInHead.equals(contentInBranch)) resolveConflict(fileName, head, branch);
-//            }
-//
-//        }
-//    }
+    /**
+     * Helper method called by merge to handle the 3rd case: divergence
+     */
+    private static void handleCoreMerge (Commit head, Commit branch, Commit split) throws IOException {
+        Set<String> files = getFileSet(head, branch, split);
+        for (String fileName: files) {
+            String contentInSplit = split.getFileContent(fileName), contentInHead = head.getFileContent(fileName),
+                    contentInBranch = branch.getFileContent(fileName);
+
+            if (!split.containsFile(fileName)) {
+                if (branch.containsFile(fileName) && !head.containsFile(fileName)) checkoutFile(branch.getSHAHash(), fileName);
+                if (branch.containsFile(fileName) && head.containsFile(fileName) &&
+                        !contentInBranch.equals(contentInHead)) resolveConflict(fileName, head, branch);
+            }
+            else if (!head.containsFile(fileName)) {
+                if (branch.containsFile(fileName) && !contentInBranch.equals(contentInSplit))
+                    resolveConflict(fileName, head, branch);
+            }
+            else if (!branch.containsFile(fileName)) {
+                if (contentInHead.equals(contentInSplit)) rm(new String[]{"rm", fileName});
+                else resolveConflict(fileName, head, branch);
+            }
+            else {
+                if (contentInSplit.equals(contentInHead) && !contentInSplit.equals(contentInBranch))
+                    checkoutFile(branch.getSHAHash(), fileName);
+                else if (!contentInSplit.equals(contentInHead) && !contentInSplit.equals(contentInBranch) &&
+                        !contentInHead.equals(contentInBranch)) resolveConflict(fileName, head, branch);
+            }
+
+        }
+    }
 
     /**
      * Helper method called by handleCoreMerge
@@ -264,41 +264,41 @@ public class Commands {
         Utils.writeContents(fileInWorkingDirectory, contentOfBackup);
     }
 
-//    /**
-//     * Helper method called by handleCoreMerge:
-//     *  Given 3 commits, return union set of the files they track
-//     */
-//    private static Set<String> getFileSet(Commit head, Commit branch, Commit split) {
-//        Set<String> files = new HashSet<>();
-//        for (String fileName: head.fileToContent.keySet()) files.add(fileName);
-//        for (String fileName: branch.fileToContent.keySet()) files.add(fileName);
-//        for (String fileName: split.fileToContent.keySet()) files.add(fileName);
-//        return files;
-//    }
-//
-//    /**
-//     * Helper method to resolves conflicts in files in 2 different branches
-//     */
-//    private static void resolveConflict(String fileName, Commit head, Commit branch) throws IOException {
-//        String headContent = "", branchContent = "";
-//        if (head.containsFile(fileName)) {
-//            File headFile = Utils.join(Repository.BACKUP_DIR, head.getSHAHash(), fileName);
-//            headContent = Utils.readContentsAsString(headFile);
-//        }
-//        if (branch.containsFile(fileName)) {
-//            File branchFile = Utils.join(Repository.BACKUP_DIR, branch.getSHAHash(), fileName);
-//            branchContent = Utils.readContentsAsString(branchFile);
-//        }
-//
-//        File currentFile = Utils.join(Repository.CWD, fileName);
-//        if (!currentFile.exists()) currentFile.createNewFile();
-//        String newContent = "<<<<<<< HEAD\n";
-//        newContent += headContent;
-//        newContent += "=======\n";
-//        newContent += branchContent;
-//        newContent += ">>>>>>>";
-//        Utils.writeContents(currentFile, newContent);
-//    }
+    /**
+     * Helper method called by handleCoreMerge:
+     *  Given 3 commits, return union set of the files they track
+     */
+    private static Set<String> getFileSet(Commit head, Commit branch, Commit split) {
+        Set<String> files = new HashSet<>();
+        for (String fileName: head.fileToContent.keySet()) files.add(fileName);
+        for (String fileName: branch.fileToContent.keySet()) files.add(fileName);
+        for (String fileName: split.fileToContent.keySet()) files.add(fileName);
+        return files;
+    }
+
+    /**
+     * Helper method to resolves conflicts in files in 2 different branches
+     */
+    private static void resolveConflict(String fileName, Commit head, Commit branch) throws IOException {
+        String headContent = "", branchContent = "";
+        if (head.containsFile(fileName)) {
+            File headFile = Utils.join(Repository.BACKUP_DIR, head.getSHAHash(), fileName);
+            headContent = Utils.readContentsAsString(headFile);
+        }
+        if (branch.containsFile(fileName)) {
+            File branchFile = Utils.join(Repository.BACKUP_DIR, branch.getSHAHash(), fileName);
+            branchContent = Utils.readContentsAsString(branchFile);
+        }
+
+        File currentFile = Utils.join(Repository.CWD, fileName);
+        if (!currentFile.exists()) currentFile.createNewFile();
+        String newContent = "<<<<<<< HEAD\n";
+        newContent += headContent;
+        newContent += "=======\n";
+        newContent += branchContent;
+        newContent += ">>>>>>>";
+        Utils.writeContents(currentFile, newContent);
+    }
 
     /**
      * Helper method to assemble file contents in stage and previous commit (i.e., head)
@@ -651,35 +651,35 @@ public class Commands {
         checkoutCommit(commit);
     }
 
-//    /**
-//     * Execute merge command:
-//     *  1. If HEAD is the split point, fast-forward to the other branch
-//     *  2. If the other branch is the split point, do nothing
-//     *  3. Otherwise, create a new commit with 2 parents pointing to 2 branches
-//     */
-//    static void merge(String[] args) throws IOException {
-//        if (args.length != 2) GitletException.handleException("Incorrect operands.");
-//        Stage stage = getStagingArea();
-//        if (!stage.removalFileSet.isEmpty() || !stage.fileNameToContent.isEmpty())
-//            GitletException.handleException("You have uncommitted changes.");
-//        CommitTree commitTree = getCommitTree();
-//        String branchName = args[1];
-//        if (!commitTree.hasBranch(branchName))
-//            GitletException.handleException("A branch with that name does not exist.");
-//        Commit head = getHeadCommit();
-//        if (commitTree.getCommitOfBranch(branchName).equals(head.getSHAHash()))
-//            GitletException.handleException("Cannot merge a branch with itself.");
-//
-//        // Get the split point of 2 branches
-//        Commit branchCommit = getCommit(commitTree.getCommitOfBranch(branchName));
-//        Commit splitCommit = findFirstCommonAncestor(head, branchCommit);
-//
-//        if (head.equals(splitCommit)) {
-//            checkoutCommit(branchCommit);
-//            System.out.println("Current branch fast-forwarded.");
-//        }
-//        else if (branchCommit.equals(splitCommit))
-//            System.out.println("Given branch is an ancestor of the current branch.");
-//        else handleCoreMerge(head, branchCommit, splitCommit);
-//    }
+    /**
+     * Execute merge command:
+     *  1. If HEAD is the split point, fast-forward to the other branch
+     *  2. If the other branch is the split point, do nothing
+     *  3. Otherwise, create a new commit with 2 parents pointing to 2 branches
+     */
+    static void merge(String[] args) throws IOException {
+        if (args.length != 2) GitletException.handleException("Incorrect operands.");
+        Stage stage = getStagingArea();
+        if (!stage.removalFileSet.isEmpty() || !stage.fileNameToContent.isEmpty())
+            GitletException.handleException("You have uncommitted changes.");
+        CommitTree commitTree = getCommitTree();
+        String branchName = args[1];
+        if (!commitTree.hasBranch(branchName))
+            GitletException.handleException("A branch with that name does not exist.");
+        Commit head = getHeadCommit();
+        if (commitTree.getCommitOfBranch(branchName).equals(head.getSHAHash()))
+            GitletException.handleException("Cannot merge a branch with itself.");
+
+        // Get the split point of 2 branches
+        Commit branchCommit = getCommit(commitTree.getCommitOfBranch(branchName).getSHAHash());
+        Commit splitCommit = findFirstCommonAncestor(head, branchCommit);
+
+        if (head.equals(splitCommit)) {
+            checkoutCommit(branchCommit);
+            System.out.println("Current branch fast-forwarded.");
+        }
+        else if (branchCommit.equals(splitCommit))
+            System.out.println("Given branch is an ancestor of the current branch.");
+        else handleCoreMerge(head, branchCommit, splitCommit);
+    }
 }

@@ -55,9 +55,9 @@ public class Main {
                 case "reset":
                     reset(args);
                     break;
-//                case "merge":
-//                    merge(args);
-//                    break;
+                case "merge":
+                    merge(args);
+                    break;
                 default:
                     GitletException.handleException("No command with that name exists.");
             }
