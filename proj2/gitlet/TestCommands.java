@@ -354,4 +354,47 @@ public class TestCommands {
         CommitTree commitTree = Utils.readObject(COMMIT_TREE, CommitTree.class);
         assertEquals(commitTree.branches.size(), 1);
     }
+
+    @Test
+    /**
+     * [Test 19] work flow before this test:
+     * 1. pass Test01
+     */
+    public void testBasicStatus() throws IOException {
+        testInit();
+        String[] args = new String[]{"status"};
+        status(args);
+    }
+
+    @Test
+    /**
+     * [Test 20] work flow before this test:
+     * 1. pass Test03
+     */
+    public void testRmStatus() throws IOException {
+        moreTestAdd1();
+        String[] args = new String[]{"rm", "hello.txt"};
+        rm(args);
+        assertFalse(TEST_FILE_HELLO.exists());
+        args = new String[]{"status"};
+        status(args);
+    }
+
+    @Test
+    /**
+     * [Test 21] work flow before this test
+     * 1. pass Test04
+     */
+    public void testRmAndAdd() throws IOException {
+        simpleTestCommit();
+        String[] args = new String[]{"rm", "hello.txt"};
+        rm(args);
+        assertFalse(TEST_FILE_HELLO.exists());
+        TEST_FILE_HELLO.createNewFile();
+        writeContents(TEST_FILE_HELLO, "hello world\nI'm Klay");
+        args = new String[]{"add", "hello.txt"};
+        add(args);
+        args = new String[]{"status"};
+        status(args);
+    }
 }

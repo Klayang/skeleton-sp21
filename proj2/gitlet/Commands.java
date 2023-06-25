@@ -173,7 +173,7 @@ public class Commands {
     private static void checkoutFile(String commitSHAHash, String fileName) throws IOException {
         overwrite(fileName, commitSHAHash);
         Stage stage = getStagingArea();
-        stage.unstageFileIfExisted(fileName);
+        stage.unstageFileIfAdded(fileName);
     }
 
     /**
@@ -347,6 +347,10 @@ public class Commands {
         File commitTreeFile = Utils.join(Repository.GITLET_DIR, "commit_tree");
         if (!commitTreeFile.exists()) commitTreeFile.createNewFile();
         Utils.writeObject(commitTreeFile, commitTree);
+
+        // create staging area so that we could perform any operation later (e.g., add, rm)
+        STAGING_AREA.createNewFile();
+        Utils.writeObject(STAGING_AREA, new Stage());
     }
 
     /**
@@ -376,8 +380,12 @@ public class Commands {
         // add given file to the staging area if it's modified since last commit
         String fileName = args[1];
         String SHAOfContent = getSHAOfFile(fileName);
-        if (head.isFileModified(fileName, SHAOfContent)) stage.addFile(fileName, SHAOfContent);
-        else stage.unstageFileIfExisted(fileName);
+        if (head.isFileModified(fileName, SHAOfContent))
+            stage.addFile(fileName, SHAOfContent);
+        else stage.unstageFileIfAdded(fileName);
+
+        // get file out of removal set, this could happen when we remove a file, then add it back
+        if (stage.removalFileSet.contains(fileName)) stage.unremoveFile(fileName);
 
         // write the updated staging area back to file
         Utils.writeObject(STAGING_AREA, stage);
@@ -449,12 +457,10 @@ public class Commands {
         if (!head.containsFile(fileName) && !stage.hasFile(fileName))
             GitletException.handleException("No reason to remove the file.");
 
-        // remove file from staging area or the working directory
-        if (stage.hasFile(fileName)) stage.unstageFileIfExisted(fileName);
-        else {
-            stage.addFileToRemove(fileName);
-            Utils.restrictedDelete(fileName);
-        }
+        // remove file from staging area and the working directory
+        if (stage.hasFile(fileName)) stage.unstageFileIfAdded(fileName);
+        stage.addFileToRemove(fileName);
+        Utils.restrictedDelete(fileName);
 
         // write staging area back to disk
         writeStagingArea(stage);
@@ -544,7 +550,9 @@ public class Commands {
         System.out.println("=== Modifications Not Staged For Commit ===");
         for (String fileName: trackedFileToContent.keySet()) {
             File file = new File(fileName);
-            if (!file.exists()) System.out.printf("%s (deleted)\n", fileName);
+            if (!file.exists()) {
+                if (!stage.removalFileSet.contains(fileName)) System.out.printf("%s (deleted)\n", fileName);
+            }
             else {
                 String SHAOfCurrentContent = Utils.sha1(Utils.readContents(Utils.join(fileName)));
                 if (!SHAOfCurrentContent.equals(trackedFileToContent.get(fileName)))

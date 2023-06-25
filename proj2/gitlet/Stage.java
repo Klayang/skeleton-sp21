@@ -23,7 +23,7 @@ public class Stage implements Serializable {
         fileNameToContent.put(fileName, SHAOfContent);
     }
 
-    void unstageFileIfExisted(String fileName) {
+    void unstageFileIfAdded(String fileName) {
         if (fileNameToContent.containsKey(fileName)) fileNameToContent.remove(fileName);
     }
 
@@ -33,4 +33,6 @@ public class Stage implements Serializable {
     void addFileToRemove(String fileName) {
         removalFileSet.add(fileName);
     }
+
+    void unremoveFile(String fileName) {removalFileSet.remove(fileName);}
 }
