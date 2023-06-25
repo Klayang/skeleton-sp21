@@ -24,6 +24,19 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
+    /** The .gitlet/objects directory, which stores commit info. */
+    public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
+    /** The .gitlet/backup directory, which stores version of file in each commit. */
+    public static final File BACKUP_DIR = join(GITLET_DIR, "backup");
+    /** The .gitlet/commit_tree file, which stores head, master, and other branches */
+    public static final File COMMIT_TREE = join(GITLET_DIR, "commit_tree");
+    /** The .gitlet/staging_area file, which stores files staged for addition/removal */
+    public static final File STAGING_AREA = join(".gitlet", "staging_area");
+
+    /** 3 files used in test code **/
+    public static final File TEST_FILE_HELLO = join(CWD, "hello.txt");
+    public static final File TEST_FILE_WORK = join(CWD, "work.txt");
+    public static final File TEST_FILE_BELGIUM = join(CWD, "Belgium.txt");
 
     /* TODO: fill in the rest of this class. */
 }

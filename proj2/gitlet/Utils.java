@@ -14,7 +14,9 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 
@@ -29,7 +31,7 @@ import java.util.List;
 class Utils {
 
     /** The length of a complete SHA-1 UID as a hexadecimal numeral. */
-    static final int UID_LENGTH = 40;
+    public static final int UID_LENGTH = 40;
 
     /* SHA-1 HASH VALUES. */
 
@@ -88,6 +90,15 @@ class Utils {
         return restrictedDelete(new File(file));
     }
 
+    static void deleteDirectory(File file) {
+        if (!file.isDirectory()) throw new IllegalArgumentException("Not a directory");
+        for (File subFile: file.listFiles()) {
+            if (subFile.isDirectory()) deleteDirectory(subFile);
+            else subFile.delete();
+        }
+        file.delete();
+    }
+
     /* READING AND WRITING FILE CONTENTS */
 
     /** Return the entire contents of FILE as a byte array.  FILE must
@@ -136,6 +147,16 @@ class Utils {
         }
     }
 
+    /**
+     * Helper method that appends contents to a file rather than overwrite it
+     * @param file
+     * @param newContent
+     */
+    static void appendContents(File file, String newContent) {
+        byte[] oldContents = readContents(file);
+        writeContents(file, oldContents, newContent);
+    }
+
     /** Return an object of type T read from FILE, casting it to EXPECTEDCLASS.
      *  Throws IllegalArgumentException in case of problems. */
     static <T extends Serializable> T readObject(File file,
@@ -168,6 +189,14 @@ class Utils {
             }
         };
 
+    /** Filter out all but directories. */
+    private static final FilenameFilter DIRECTORIES = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return new File(dir, name).isDirectory();
+        }
+    };
+
     /** Returns a list of the names of all plain files in the directory DIR, in
      *  lexicographic order as Java Strings.  Returns null if DIR does
      *  not denote a directory. */
@@ -188,17 +217,26 @@ class Utils {
         return plainFilenamesIn(new File(dir));
     }
 
+    /**
+     * Returns a list of the names of all directories in the directory DIR
+     */
+    static List<String> directoriesNamesIn(File dir) {
+        String[] directoryNames = dir.list(DIRECTORIES);
+        if (directoryNames == null) return null;
+        return Arrays.asList(directoryNames);
+    }
+
     /* OTHER FILE UTILITIES */
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
-     *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
+     *  analogous to the
      *  method. */
     static File join(String first, String... others) {
         return Paths.get(first, others).toFile();
     }
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
-     *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
+     *  analogous to the
      *  method. */
     static File join(File first, String... others) {
         return Paths.get(first.getPath(), others).toFile();
@@ -235,5 +273,9 @@ class Utils {
     static void message(String msg, Object... args) {
         System.out.printf(msg, args);
         System.out.println();
+    }
+
+    static Commit initialCommit() {
+        return new Commit(null, "initial commit", new Date(0));
     }
 }
