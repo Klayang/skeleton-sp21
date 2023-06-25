@@ -95,6 +95,35 @@ public class Commands {
         Utils.writeObject(STAGING_AREA, stage);
     }
 
+    /**
+     * Helper method to get a string that represents offset between current timezone and UTC
+     */
+     private static String getOffsetBetweenTimezones() {
+        String[] date = new Date(0).toString().split(" ");
+        int year = Integer.parseInt(date[5]), hour = Integer.parseInt(date[3].split(":")[0]);
+        String num, sign;
+        if (year == 1970) {
+            sign = "+";
+            num = hour + "00";
+        }
+        else {
+            sign = "-";
+            num = String.valueOf(24 - hour);
+        }
+        if (num.length() == 3) num = "0" + num;
+        return sign + num;
+    }
+
+    /**
+     * Helper method to get a string that represents commit time
+     */
+    private static String getCommitTime(Date commitTime) {
+        String[] components = commitTime.toString().split(" ");
+        components[4] = components[5];
+        components[5] = getOffsetBetweenTimezones();
+        return components[0] + " " + components[1] + " " + components[2] + " " + components[3] + " "
+                + components[4] + " " + components[5];
+    }
 
     /**
      * Helper method called by command log, to print info of a commit
@@ -104,7 +133,7 @@ public class Commands {
         String SHA = commit.getSHAHash();
         System.out.println("===");
         System.out.printf("commit %s\n", SHA);
-        System.out.printf("Date: %s\n", commitTime.toString());
+        System.out.printf("Date: %s\n", getCommitTime(commitTime));
         System.out.println(commit.message);
         System.out.println();
     }

@@ -7,6 +7,13 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.Formatter;
+import java.util.Locale;
+
 /**
  * Contents in the following commits:
  *  1. --
@@ -336,7 +343,8 @@ public class TestCommands {
 
     @Test
     /**
-     *
+     * [Test 18] work flow before this test:
+     * 1. pass Test17
      */
     public void testRmBranch() throws IOException {
         testCheckout2();
