@@ -174,6 +174,7 @@ public class Commands {
         overwrite(fileName, commitSHAHash);
         Stage stage = getStagingArea();
         stage.unstageFileIfAdded(fileName);
+        Utils.writeObject(STAGING_AREA, stage);
     }
 
     /**
@@ -521,6 +522,7 @@ public class Commands {
     static void status(String[] args) {
         // Exception handling
         if (args.length != 1) GitletException.handleException("Incorrect operands.");
+        if (!GITLET_DIR.exists()) GitletException.handleException("Not in an initialized Gitlet directory.");
         Stage stage = getStagingArea();
         CommitTree commitTree = Utils.readObject(COMMIT_TREE, CommitTree.class);
         Map<String, String> trackedFileToContent = getTrackedFileToContent(stage.fileNameToContent,
@@ -594,13 +596,15 @@ public class Commands {
             if (!args[1].equals("--")) GitletException.handleException("No command with that name exists.");
             String fileName = args[2];
             Commit head = getHeadCommit();
-            checkoutFile(head.getSHAHash(), fileName);
+            if (!head.containsFile(fileName)) GitletException.handleException("File does not exist in that commit.");
+            checkoutFile(head.getCommitSHAOfFile(fileName), fileName);
         }
         else {
             if (!args[2].equals("--")) GitletException.handleException("No command with that name exists.");
             String commitID = args[1], fileName = args[3];
             Commit commit = getCommit(commitID);
-            checkoutFile(commit.getSHAHash(), fileName);
+            if (!commit.containsFile(fileName)) GitletException.handleException("No commit with that id exists.");
+            checkoutFile(commit.getCommitSHAOfFile(fileName), fileName);
         }
     }
 

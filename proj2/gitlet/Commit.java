@@ -109,6 +109,11 @@ public class Commit implements Serializable {
         return fileToContent.get(fileName);
     }
 
+    /**
+     * Return SHA of the commit, whose backup repository is where the given file is stored
+     */
+    public String getCommitSHAOfFile(String fileName) {return fileToCommit.get(fileName);}
+
     @Override
     public String toString() {
         return getSHAHash();
