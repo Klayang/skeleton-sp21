@@ -599,14 +599,14 @@ public class Commands {
             Utils.writeObject(COMMIT_TREE, commitTree);
         }
         else if (args.length == 3) {
-            if (!args[1].equals("--")) GitletException.handleException("No command with that name exists.");
+            if (!args[1].equals("--")) GitletException.handleException("Incorrect operands.");
             String fileName = args[2];
             Commit head = getHeadCommit();
             if (!head.containsFile(fileName)) GitletException.handleException("File does not exist in that commit.");
             checkoutFile(head.getCommitSHAOfFile(fileName), fileName);
         }
         else {
-            if (!args[2].equals("--")) GitletException.handleException("No command with that name exists.");
+            if (!args[2].equals("--")) GitletException.handleException("Incorrect operands");
             String commitID = args[1], fileName = args[3];
             Commit commit = getCommit(commitID);
             if (!commit.containsFile(fileName)) GitletException.handleException("File does not exist in that commit.");
