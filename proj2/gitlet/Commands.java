@@ -547,6 +547,7 @@ public class Commands {
                                                                     commitTree.head.fileToContent);
 
         // Display info of possible branches
+        System.out.println("=== Branches ===");
         for (String branchName: getItemsInOrder(commitTree.branches.keySet())) {
             if (branchName.equals(commitTree.currentBranchName)) System.out.print("*");
             System.out.println(branchName);
