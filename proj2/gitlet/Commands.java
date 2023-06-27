@@ -588,6 +588,7 @@ public class Commands {
         if (args.length == 2) {
             CommitTree commitTree = Utils.readObject(COMMIT_TREE, CommitTree.class);
             String branchName = args[1];
+            if (commitTree.isCurrentBranch(branchName)) GitletException.handleException("No need to checkout the current branch.");
             Commit commit = commitTree.getCommitOfBranch(branchName);
             if (commit == null) GitletException.handleException("No such branch exists.");
             String commitID = commit.getSHAHash();
