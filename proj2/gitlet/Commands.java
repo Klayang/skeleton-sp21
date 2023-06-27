@@ -183,7 +183,7 @@ public class Commands {
     private static Commit getCommit(String id) {
         String folderName = id.substring(0, 2), commitFileName = id.substring(2);
         File commitFile = Utils.join(Repository.OBJECTS_DIR, folderName, commitFileName);
-        if (!commitFile.exists()) GitletException.handleException("File does not exist.");
+        if (!commitFile.exists()) GitletException.handleException("No commit with that id exists.");
         return Utils.readObject(commitFile, Commit.class);
     }
 
@@ -195,9 +195,13 @@ public class Commands {
      */
     private static void checkoutCommit(Commit commit) throws IOException {
         Map<String, String> fileToCommit = commit.fileToCommit;
+        List<String> filesInWorkingDirectory = Utils.plainFilenamesIn(Repository.CWD);
+        Commit head = getHeadCommit();
+        for (String fileName: fileToCommit.keySet())
+            if (filesInWorkingDirectory.contains(fileName) && !head.containsFile(fileName))
+                GitletException.handleException("There is an untracked file in the way; delete it, or add and commit it first.");
         for (String fileName: fileToCommit.keySet())
             checkoutFile(fileToCommit.get(fileName), fileName);
-        List<String> filesInWorkingDirectory = Utils.plainFilenamesIn(Repository.CWD);
         for (String fileName: filesInWorkingDirectory)
             if (!fileToCommit.containsKey(fileName) && !isNecessaryFile(fileName)) Utils.restrictedDelete(fileName);
 
@@ -584,7 +588,9 @@ public class Commands {
         if (args.length == 2) {
             CommitTree commitTree = Utils.readObject(COMMIT_TREE, CommitTree.class);
             String branchName = args[1];
-            String commitID = commitTree.getCommitOfBranch(branchName).getSHAHash();
+            Commit commit = commitTree.getCommitOfBranch(branchName);
+            if (commit == null) GitletException.handleException("No such branch exists.");
+            String commitID = commit.getSHAHash();
             Commit headCommitOfBranch = getCommit(commitID);
             checkoutCommit(headCommitOfBranch);
 
@@ -603,7 +609,7 @@ public class Commands {
             if (!args[2].equals("--")) GitletException.handleException("No command with that name exists.");
             String commitID = args[1], fileName = args[3];
             Commit commit = getCommit(commitID);
-            if (!commit.containsFile(fileName)) GitletException.handleException("No commit with that id exists.");
+            if (!commit.containsFile(fileName)) GitletException.handleException("File does not exist in that commit.");
             checkoutFile(commit.getCommitSHAOfFile(fileName), fileName);
         }
     }
