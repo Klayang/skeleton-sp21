@@ -37,4 +37,12 @@ public class CommitTree implements Serializable {
     public boolean isCurrentBranch(String branchName) {
         return currentBranchName.equals(branchName);
     }
+
+    /**
+     * Called in reset
+     */
+    public void resetBranch(Commit commit) {
+        branches.put(currentBranchName, commit);
+        head = commit;
+    }
 }

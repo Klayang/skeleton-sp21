@@ -660,6 +660,11 @@ public class Commands {
         String commitID = args[1];
         Commit commit = getCommit(commitID);
         checkoutCommit(commit);
+
+        // set the given commit to be the head of current branch and write commit tree back to file
+        CommitTree commitTree = getCommitTree();
+        commitTree.resetBranch(commit);
+        writeCommitTree(commitTree);
     }
 
     /**
