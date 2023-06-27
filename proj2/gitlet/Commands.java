@@ -318,6 +318,20 @@ public class Commands {
             res.put(fileName, fileToContentOnStage.get(fileName));
         return res;
     }
+    /**
+     * Helper method to sort items in a set lexicographically, and return the set
+     * This will be called by command status
+     */
+    private static Set<String> getItemsInOrder(Set<String> set) {
+        Set<String> res = new TreeSet<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareTo(o2);
+            }
+        });
+        res.addAll(set);
+        return res;
+    }
 
     /**
      * Tell if the given file is the necessary configuration file for the project
@@ -533,8 +547,7 @@ public class Commands {
                                                                     commitTree.head.fileToContent);
 
         // Display info of possible branches
-        System.out.println("=== Branches ===");
-        for (String branchName: commitTree.branches.keySet()) {
+        for (String branchName: getItemsInOrder(commitTree.branches.keySet())) {
             if (branchName.equals(commitTree.currentBranchName)) System.out.print("*");
             System.out.println(branchName);
         }
@@ -547,13 +560,13 @@ public class Commands {
 
         // Display files staged for removal
         System.out.println("=== Removed Files ===");
-        for (String fileName: stage.removalFileSet)
+        for (String fileName: getItemsInOrder(stage.removalFileSet))
             System.out.println(fileName);
         System.out.println();
 
         // Display files modified but not staged
         System.out.println("=== Modifications Not Staged For Commit ===");
-        for (String fileName: trackedFileToContent.keySet()) {
+        for (String fileName: getItemsInOrder(trackedFileToContent.keySet())) {
             File file = new File(fileName);
             if (!file.exists()) {
                 if (!stage.removalFileSet.contains(fileName)) System.out.printf("%s (deleted)\n", fileName);
@@ -569,6 +582,7 @@ public class Commands {
         // Display files untracked
         System.out.println("=== Untracked Files ===");
         List<String> fileNames = Utils.plainFilenamesIn(Repository.CWD);
+        Collections.sort(fileNames);
         for (String fileName: fileNames)
             if (!trackedFileToContent.containsKey(fileName)) System.out.println(fileName);
         System.out.println();
