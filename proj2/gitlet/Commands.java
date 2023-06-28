@@ -554,6 +554,7 @@ public class Commands {
             if (branchName.equals(commitTree.currentBranchName)) System.out.print("*");
             System.out.println(branchName);
         }
+        System.out.println();
 
         // Display files staged for addition
         System.out.println("=== Staged Files ===");
