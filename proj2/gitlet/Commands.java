@@ -182,8 +182,18 @@ public class Commands {
      */
     private static Commit getCommit(String id) {
         String folderName = id.substring(0, 2), commitFileName = id.substring(2);
-        File commitFile = Utils.join(Repository.OBJECTS_DIR, folderName, commitFileName);
-        if (!commitFile.exists()) GitletException.handleException("No commit with that id exists.");
+        File commitFile = null;
+        if (commitFileName.length() == 38)
+                commitFile = Utils.join(OBJECTS_DIR, folderName, commitFileName);
+        else {
+            File commitDirectory = Utils.join(OBJECTS_DIR, folderName);
+            for (File candidateCommitFile: commitDirectory.listFiles())
+                if (commitFileName.equals(candidateCommitFile.getName().substring(0, commitFileName.length()))) {
+                    commitFile = candidateCommitFile;
+                    break;
+                }
+        }
+        if (commitFile == null || !commitFile.exists()) GitletException.handleException("No commit with that id exists.");
         return Utils.readObject(commitFile, Commit.class);
     }
 
@@ -627,6 +637,7 @@ public class Commands {
         else {
             if (!args[2].equals("--")) GitletException.handleException("Incorrect operands");
             String commitID = args[1], fileName = args[3];
+            if (commitID.length() > 40) GitletException.handleException("No commit with that id exists.");
             Commit commit = getCommit(commitID);
             if (!commit.containsFile(fileName)) GitletException.handleException("File does not exist in that commit.");
             checkoutFile(commit.getCommitSHAOfFile(fileName), fileName);
