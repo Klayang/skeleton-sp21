@@ -477,8 +477,10 @@ public class Commands {
 
         // remove file from staging area and the working directory
         if (stage.hasFile(fileName)) stage.unstageFileIfAdded(fileName);
-        if (head.containsFile(fileName)) stage.addFileToRemove(fileName);
-        Utils.restrictedDelete(fileName);
+        else if (head.containsFile(fileName)) {
+            stage.addFileToRemove(fileName);
+            Utils.restrictedDelete(fileName);
+        }
 
         // write staging area back to disk
         writeStagingArea(stage);
@@ -549,7 +551,7 @@ public class Commands {
         // Display info of possible branches
         System.out.println("=== Branches ===");
         for (String branchName: getItemsInOrder(commitTree.branches.keySet())) {
-            if (branchName.equals(commitTree.currentBranchName)) System.out.print("\\*");
+            if (branchName.equals(commitTree.currentBranchName)) System.out.print("*");
             System.out.println(branchName);
         }
 
