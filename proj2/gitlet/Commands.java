@@ -29,6 +29,21 @@ public class Commands {
         Utils.writeObject(commitObjectFile, commit);
     }
 
+    private static void moveCommitToDisk(Commit commit) throws IOException {
+        // write the given commit to commit tree and its underlying file
+        CommitTree commitTree = Utils.readObject(COMMIT_TREE, CommitTree.class);
+        commitTree.updateHead(commit);
+        Utils.writeObject(COMMIT_TREE, commitTree);
+        writeCommit(commit);
+
+        // write each modified file to history storage
+        Stage stage = Utils.readObject(STAGING_AREA, Stage.class);
+        backupModifiedFile(stage.fileNameToContent.keySet(), commit.getSHAHash());
+
+        // clear the staging area
+        Utils.writeObject(STAGING_AREA, new Stage());
+    }
+
     /**
      * Helper method to check if the given file exists in the working directory
      */
@@ -238,33 +253,53 @@ public class Commands {
     /**
      * Helper method called by merge to handle the 3rd case: divergence
      */
-    private static void handleCoreMerge (Commit head, Commit branch, Commit split) throws IOException {
+    private static boolean handleCoreMerge (Commit head, Commit branch, Commit split) throws IOException {
         Set<String> files = getFileSet(head, branch, split);
+        boolean hasConflict  = false;
         for (String fileName: files) {
             String contentInSplit = split.getFileContent(fileName), contentInHead = head.getFileContent(fileName),
                     contentInBranch = branch.getFileContent(fileName);
 
             if (!split.containsFile(fileName)) {
-                if (branch.containsFile(fileName) && !head.containsFile(fileName)) checkoutFile(branch.getSHAHash(), fileName);
-                if (branch.containsFile(fileName) && head.containsFile(fileName) &&
-                        !contentInBranch.equals(contentInHead)) resolveConflict(fileName, head, branch);
+                // case 5
+                if (branch.containsFile(fileName) && !head.containsFile(fileName)) {
+                    checkoutFile(branch.getSHAHash(), fileName);
+                    add(new String[]{"add", fileName});
+                }
+                else if (branch.containsFile(fileName) && head.containsFile(fileName) &&
+                        !contentInBranch.equals(contentInHead)) {
+                    resolveConflict(fileName, head, branch);
+                    hasConflict = true;
+                }
             }
             else if (!head.containsFile(fileName)) {
-                if (branch.containsFile(fileName) && !contentInBranch.equals(contentInSplit))
+                if (branch.containsFile(fileName) && !contentInBranch.equals(contentInSplit)) {
                     resolveConflict(fileName, head, branch);
+                    hasConflict = true;
+                }
             }
             else if (!branch.containsFile(fileName)) {
+                // case 6
                 if (contentInHead.equals(contentInSplit)) rm(new String[]{"rm", fileName});
-                else resolveConflict(fileName, head, branch);
+                else {
+                    resolveConflict(fileName, head, branch);
+                    hasConflict = true;
+                }
             }
             else {
-                if (contentInSplit.equals(contentInHead) && !contentInSplit.equals(contentInBranch))
+                // case 1
+                if (contentInSplit.equals(contentInHead) && !contentInSplit.equals(contentInBranch)) {
                     checkoutFile(branch.getSHAHash(), fileName);
+                    add(new String[]{"add", fileName});
+                }
                 else if (!contentInSplit.equals(contentInHead) && !contentInSplit.equals(contentInBranch) &&
-                        !contentInHead.equals(contentInBranch)) resolveConflict(fileName, head, branch);
+                        !contentInHead.equals(contentInBranch)) {
+                    resolveConflict(fileName, head, branch);
+                    hasConflict = true;
+                }
             }
-
         }
+        return hasConflict;
     }
 
     /**
@@ -436,38 +471,11 @@ public class Commands {
         if (args.length == 1 || args[1].length() == 0) GitletException.handleException("Please enter a commit message.");
         if (args.length > 2) GitletException.handleException("Incorrect operands.");
 
-        // read info about last commit and staging area
-        CommitTree commitTree = Utils.readObject(COMMIT_TREE, CommitTree.class);
-        Commit head = commitTree.head;
-        Commit current = new Commit(head, args[1], new Date());
+        // read info about last commit and staging area, then create the current commit
+        Commit current = new Commit(getHeadCommit(), args[1], new Date());
 
-        Stage stage = Utils.readObject(STAGING_AREA, Stage.class);
-
-        // update entries in last commit to create current one
-        Map<String, String> stagedFileToContent = stage.fileNameToContent;
-        Set<String> removalFileSet = stage.removalFileSet;
-        if (stagedFileToContent.isEmpty() && removalFileSet.isEmpty())
-            GitletException.handleException("No changes added to the commit.");
-
-        for (String fileName: stagedFileToContent.keySet())
-            current.updateContentEntry(fileName, stagedFileToContent.get(fileName));
-        for (String fileName: removalFileSet)
-            current.removeUntrackedFile(fileName);
-
-        String SHAOfCurrent = current.getSHAHash();
-        for (String fileName: stagedFileToContent.keySet())
-            current.updateCommitEntry(fileName, SHAOfCurrent);
-
-        // write new head to commit tree and its underlying file
-        commitTree.updateHead(current);
-        Utils.writeObject(COMMIT_TREE, commitTree);
-        writeCommit(current);
-
-        // write each modified file to history storage
-        backupModifiedFile(stagedFileToContent.keySet(), SHAOfCurrent);
-
-        // clear the staging area
-        Utils.writeObject(STAGING_AREA, new Stage());
+        // write commit tree, commit and files modified in this commit to disk
+        moveCommitToDisk(current);
     }
 
     /**
@@ -637,7 +645,7 @@ public class Commands {
         else {
             if (!args[2].equals("--")) GitletException.handleException("Incorrect operands");
             String commitID = args[1], fileName = args[3];
-            if (commitID.length() > 40) GitletException.handleException("No commit with that id exists.");
+            if (commitID.length() > 40 || commitID.length() < 6) GitletException.handleException("No commit with that id exists.");
             Commit commit = getCommit(commitID);
             if (!commit.containsFile(fileName)) GitletException.handleException("File does not exist in that commit.");
             checkoutFile(commit.getCommitSHAOfFile(fileName), fileName);
@@ -725,6 +733,11 @@ public class Commands {
         }
         else if (branchCommit.equals(splitCommit))
             System.out.println("Given branch is an ancestor of the current branch.");
-        else handleCoreMerge(head, branchCommit, splitCommit);
+        else {
+            boolean hasConflict = handleCoreMerge(head, branchCommit, splitCommit);
+            Commit current = new Commit(head, branchCommit, "Merged [" + branchName + "] into [" + commitTree.currentBranchName + "]", new Date());
+            if (hasConflict) System.out.println("Encountered a merge conflict.");
+            moveCommitToDisk(current);
+        }
     }
 }

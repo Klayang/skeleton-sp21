@@ -422,4 +422,43 @@ public class TestCommands {
         String[] args = new String[]{"commit", ""};
         commit(args);
     }
+
+    @Test
+    /**
+     * [Test 24]
+     */
+    public void testCheckoutAfterAddAndRm() throws IOException {
+        moreTestAdd1();
+        String[] args = new String[]{"rm", "work.txt"};
+        rm(args);
+        args = new String[]{"status"};
+        status(args);
+    }
+
+    @Test
+    /**
+     * [Test 25]
+     */
+    public void testMerge() throws IOException {
+        testInit();
+        branch(new String[]{"branch", "1B"});
+
+        if (!TEST_FILE_HELLO.exists()) TEST_FILE_HELLO.createNewFile();
+        writeContents(TEST_FILE_HELLO, "hello world");
+
+        String[] args = new String[]{"add", "hello.txt"};
+        add(args);
+        commit(new String[]{"commit", "master branch"});
+        Commit master = readObject(COMMIT_TREE, CommitTree.class).head;
+
+        checkout(new String[]{"checkout", "1B"});
+        if (!TEST_FILE_WORK.exists()) TEST_FILE_WORK.createNewFile();
+        args = new String[]{"add", "work.txt"};
+        add(args);
+        commit(new String[]{"commit", "1B branch"});
+
+        merge(new String[]{"merge", "master"});
+        Commit head = readObject(COMMIT_TREE, CommitTree.class).head;
+        assertTrue(master.equals(head.secondParent));
+    }
 }
