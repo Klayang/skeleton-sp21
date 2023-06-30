@@ -279,6 +279,12 @@ public class Commands {
                     resolveConflict(fileName, head, branch);
                     hasConflict = true;
                 }
+                // case 7
+                else if (branch.containsFile(fileName) && contentInBranch.equals(contentInSplit)) {
+                    Stage stage = getStagingArea();
+                    stage.addFileToRemove(fileName);
+                    Utils.writeObject(STAGING_AREA, stage);
+                }
             }
             else if (!branch.containsFile(fileName)) {
                 // case 6
