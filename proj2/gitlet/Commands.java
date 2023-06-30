@@ -148,6 +148,8 @@ public class Commands {
         String SHA = commit.getSHAHash();
         System.out.println("===");
         System.out.printf("commit %s\n", SHA);
+        if (commit.secondParent != null)
+            System.out.println("Merge: " + commit.parent.getSHAHash().substring(0, 6) + " " + commit.secondParent.getSHAHash().substring(0, 6));
         System.out.printf("Date: %s\n", getCommitTime(commitTime));
         System.out.println(commit.message);
         System.out.println();
