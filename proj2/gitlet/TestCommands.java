@@ -444,7 +444,7 @@ public class TestCommands {
         branch(new String[]{"branch", "1B"});
 
         if (!TEST_FILE_HELLO.exists()) TEST_FILE_HELLO.createNewFile();
-        writeContents(TEST_FILE_HELLO, "hello world");
+        writeContents(TEST_FILE_HELLO, "hello world\n");
 
         String[] args = new String[]{"add", "hello.txt"};
         add(args);
@@ -452,13 +452,15 @@ public class TestCommands {
         Commit master = readObject(COMMIT_TREE, CommitTree.class).head;
 
         checkout(new String[]{"checkout", "1B"});
-        if (!TEST_FILE_WORK.exists()) TEST_FILE_WORK.createNewFile();
-        args = new String[]{"add", "work.txt"};
+        if (!TEST_FILE_WORK.exists()) TEST_FILE_HELLO.createNewFile();
+        writeContents(TEST_FILE_HELLO, "I'm Klay\n");
+        args = new String[]{"add", "hello.txt"};
         add(args);
         commit(new String[]{"commit", "1B branch"});
 
         merge(new String[]{"merge", "master"});
         Commit head = readObject(COMMIT_TREE, CommitTree.class).head;
         assertTrue(master.equals(head.secondParent));
+        log(new String[]{"log"});
     }
 }

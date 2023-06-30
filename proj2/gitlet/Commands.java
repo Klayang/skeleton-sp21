@@ -350,6 +350,7 @@ public class Commands {
         newContent += branchContent;
         newContent += ">>>>>>>";
         Utils.writeContents(currentFile, newContent);
+        add(new String[]{"add", fileName});
     }
 
     /**
@@ -729,7 +730,8 @@ public class Commands {
         Commit branchCommit = getCommit(commitTree.getCommitOfBranch(branchName).getSHAHash());
         Commit splitCommit = findFirstCommonAncestor(head, branchCommit);
 
-        if (head.equals(splitCommit)) {
+        if (head.equals(branchCommit)) GitletException.handleException("Cannot merge a branch with itself.");
+        else if (head.equals(splitCommit)) {
             checkoutCommit(branchCommit);
             System.out.println("Current branch fast-forwarded.");
         }
@@ -737,7 +739,7 @@ public class Commands {
             System.out.println("Given branch is an ancestor of the current branch.");
         else {
             boolean hasConflict = handleCoreMerge(head, branchCommit, splitCommit);
-            Commit current = new Commit(head, branchCommit, "Merged [" + branchName + "] into [" + commitTree.currentBranchName + "]", new Date());
+            Commit current = new Commit(head, branchCommit, "Merged " + branchName + " into " + commitTree.currentBranchName, new Date());
             if (hasConflict) System.out.println("Encountered a merge conflict.");
             moveCommitToDisk(current);
         }
