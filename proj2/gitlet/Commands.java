@@ -739,7 +739,7 @@ public class Commands {
             System.out.println("Given branch is an ancestor of the current branch.");
         else {
             boolean hasConflict = handleCoreMerge(head, branchCommit, splitCommit);
-            Commit current = new Commit(head, branchCommit, "Merged " + branchName + " into " + commitTree.currentBranchName, new Date());
+            Commit current = new Commit(head, branchCommit, "Merged " + branchName + " into " + commitTree.currentBranchName + ".", new Date());
             if (hasConflict) System.out.println("Encountered a merge conflict.");
             moveCommitToDisk(current);
         }
