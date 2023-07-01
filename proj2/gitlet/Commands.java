@@ -251,15 +251,43 @@ public class Commands {
      *  See Leetcode offer52 for detail of solution
      */
     private static Commit findFirstCommonAncestor(Commit commitA, Commit commitB) {
-        Commit h1 = commitA, h2 = commitB;
-        while (h1 != null || h2 != null) {
-            if (equalCommits(h1, h2)) break;
-            if (h1 == null) h1 = commitB;
-            else h1 = h1.parent;
-            if (h2 == null) h2 = commitA;
-            else h2 = h2.parent;
+//        Commit h1 = commitA, h2 = commitB;
+//        while (h1 != null || h2 != null) {
+//            if (equalCommits(h1, h2)) break;
+//            if (h1 == null) h1 = commitB;
+//            else h1 = h1.parent;
+//            if (h2 == null) h2 = commitA;
+//            else h2 = h2.parent;
+//        }
+//        return h1;
+        Set<Commit> ancestorsOfA = new HashSet<>();
+        collectAncestors(ancestorsOfA, commitA);
+        Queue<Commit> ancestorQueue = new LinkedList<>();
+        ancestorQueue.add(commitB);
+        while (!ancestorQueue.isEmpty()) {
+            Commit commit = ancestorQueue.poll();
+            if (commit.parent != null) {
+                if (ancestorsOfA.contains(commit.parent)) return commit.parent;
+                ancestorQueue.add(commit.parent);
+            }
+            if (commit.secondParent != null) {
+                if (ancestorsOfA.contains(commit.secondParent)) return commit.secondParent;
+                ancestorQueue.add(commit.secondParent);
+            }
         }
-        return h1;
+        return null;
+    }
+
+    private static void collectAncestors(Set<Commit> ancestors, Commit commit) {
+        if (commit.parent != null) {
+            ancestors.add(commit.parent);
+            collectAncestors(ancestors, commit.parent);
+        }
+        if (commit.secondParent != null) {
+            ancestors.add(commit.secondParent);
+            collectAncestors(ancestors, commit.secondParent);
+        }
+
     }
 
     /**
