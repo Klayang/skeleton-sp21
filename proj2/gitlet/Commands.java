@@ -237,13 +237,23 @@ public class Commands {
     }
 
     /**
+     *
+     */
+    private static boolean equalCommits(Commit c1, Commit c2) {
+        if (c1 == null && c2 == null) return true;
+        if (c1 == null || c2 == null) return false;
+        if (c1.equals(c2)) return true;
+        return false;
+    }
+
+    /**
      * Helper method called by merge, to find the first common ancestor of 2 commits
      *  See Leetcode offer52 for detail of solution
      */
     private static Commit findFirstCommonAncestor(Commit commitA, Commit commitB) {
         Commit h1 = commitA, h2 = commitB;
         while (h1 != null || h2 != null) {
-            if (h1.equals(h2)) break;
+            if (equalCommits(h1, h2)) break;
             if (h1 == null) h1 = commitB;
             else h1 = h1.parent;
             if (h2 == null) h2 = commitA;
