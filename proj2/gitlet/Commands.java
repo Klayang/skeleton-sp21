@@ -397,11 +397,11 @@ public class Commands {
         newContent += headContent;
         newContent += "=======\n";
         newContent += branchContent;
-        newContent += ">>>>>>>";
+        newContent += ">>>>>>>\r\n";
         Utils.writeContents(currentFile, newContent);
         add(new String[]{"add", fileName});
-        String contents = Utils.readContentsAsString(currentFile);
-        System.out.print(contents);
+//        String contents = Utils.readContentsAsString(currentFile);
+//        System.out.print(contents);
     }
 
     /**
