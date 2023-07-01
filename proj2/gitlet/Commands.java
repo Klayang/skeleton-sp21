@@ -267,6 +267,15 @@ public class Commands {
      */
     private static boolean handleCoreMerge (Commit head, Commit branch, Commit split) throws IOException {
         Set<String> files = getFileSet(head, branch, split);
+        for (File fileInCWD: CWD.listFiles()) {
+            String fileName = fileInCWD.getName();
+            if (!head.containsFile(fileName)) {
+                if (!split.containsFile(fileName))
+                    GitletException.handleException("There is an untracked file in the way; delete it, or add and commit it first.");
+                if (!split.getFileContent(fileName).equals(branch.getFileContent(fileName)))
+                    GitletException.handleException("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
         boolean hasConflict  = false;
         for (String fileName: files) {
             String contentInSplit = split.getFileContent(fileName), contentInHead = head.getFileContent(fileName),
