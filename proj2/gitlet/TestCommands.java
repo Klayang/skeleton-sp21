@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Contents in the following commits:
@@ -462,5 +460,63 @@ public class TestCommands {
         Commit head = readObject(COMMIT_TREE, CommitTree.class).head;
         assertTrue(master.equals(head.secondParent));
         log(new String[]{"log"});
+    }
+
+    @Test
+    public void testSpecialMerge() throws IOException {
+        simpleTestCommit();
+        branch(new String[]{"branch", "b1"});
+        appendContents(TEST_FILE_HELLO, "2nd");
+        add(new String[]{"add", "hello.txt"});
+        commit(new String[]{"commit", "2nd"});
+        appendContents(TEST_FILE_HELLO, "3rd");
+        add(new String[]{"add", "hello.txt"});
+        commit(new String[]{"commit", "3rd"});
+        merge(new String[]{"merge", "b1"});
+    }
+
+    @Test
+    public void testMergeParent2() throws IOException {
+        testInit();
+        branch(new String[]{"branch", "B1"});
+        branch(new String[]{"branch", "B2"});
+
+        checkout(new String[]{"checkout", "B1"});
+        writeContents(TEST_FILE_H, "h");
+        add(new String[]{"add", "h.txt"});
+        commit(new String[]{"commit", "Add h.txt"});
+
+        checkout(new String[]{"checkout", "B2"});
+        writeContents(TEST_FILE_F, "f");
+        add(new String[]{"add", "f.txt"});
+        commit(new String[]{"commit", "Add f.txt"});
+        branch(new String[]{"branch", "C1"});
+
+        writeContents(TEST_FILE_G, "g");
+        add(new String[]{"add", "g.txt"});
+        rm(new String[]{"rm", "f.txt"});
+        commit(new String[]{"commit", "g.txt added, f.txt removed"});
+
+        checkout(new String[]{"checkout", "B1"});
+        merge(new String[]{"merge", "C1"});
+        assertTrue(TEST_FILE_F.exists());
+        assertTrue(TEST_FILE_H.exists());
+        assertFalse(TEST_FILE_G.exists());
+
+        merge(new String[]{"merge", "B2"});
+        assertTrue(TEST_FILE_G.exists());
+        assertTrue(TEST_FILE_H.exists());
+        assertFalse(TEST_FILE_F.exists());
+    }
+
+    @Test
+    public void testCommitHashcode() {
+        Set<Commit> set = new HashSet<>();
+        Commit commit1 = new Commit(null, "abc", new Date());
+        Commit commit2 = new Commit(null, "abc", new Date());
+        assertTrue(commit1.equals(commit2));
+        assertTrue(Objects.equals(commit1, commit2));
+        set.add(commit1);
+        assertTrue(set.contains(commit2));
     }
 }

@@ -112,10 +112,17 @@ public class Commit implements Serializable {
 
     @Override
     public boolean equals(Object object) {
+        if (object == null) return false;
         if (object.getClass() != Commit.class) return false;
         Commit commit = (Commit) object;
         if (this.getSHAHash().equals(commit.getSHAHash())) return true;
         else return false;
+    }
+
+    @Override
+    public int hashCode() {
+        String SHA = getSHAHash();
+        return SHA.charAt(0) + SHA.charAt(1);
     }
 
     /**

@@ -38,5 +38,8 @@ public class Repository {
     public static final File TEST_FILE_WORK = join(CWD, "work.txt");
     public static final File TEST_FILE_BELGIUM = join(CWD, "Belgium.txt");
 
+    public static final File TEST_FILE_F = join(CWD, "f.txt");
+    public static final File TEST_FILE_H = join(CWD, "h.txt");
+    public static final File TEST_FILE_G = join(CWD, "g.txt");
     /* TODO: fill in the rest of this class. */
 }
