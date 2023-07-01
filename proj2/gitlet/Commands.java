@@ -269,10 +269,9 @@ public class Commands {
         Set<String> files = getFileSet(head, branch, split);
         for (File fileInCWD: CWD.listFiles()) {
             String fileName = fileInCWD.getName();
-            if (!head.containsFile(fileName)) {
+            if (!head.containsFile(fileName) && branch.containsFile(fileName)) {
                 if (!split.containsFile(fileName))
-                    if (branch.containsFile(fileName))
-                        GitletException.handleException("There is an untracked file in the way; delete it, or add and commit it first.");
+                    GitletException.handleException("There is an untracked file in the way; delete it, or add and commit it first.");
                 if (!split.getFileContent(fileName).equals(branch.getFileContent(fileName)))
                     GitletException.handleException("There is an untracked file in the way; delete it, or add and commit it first.");
             }
