@@ -261,19 +261,15 @@ public class Commands {
 //        }
 //        return h1;
         Set<Commit> ancestorsOfA = new HashSet<>();
+        ancestorsOfA.add(commitA);
         collectAncestors(ancestorsOfA, commitA);
         Queue<Commit> ancestorQueue = new LinkedList<>();
         ancestorQueue.add(commitB);
         while (!ancestorQueue.isEmpty()) {
             Commit commit = ancestorQueue.poll();
-            if (commit.parent != null) {
-                if (ancestorsOfA.contains(commit.parent)) return commit.parent;
-                ancestorQueue.add(commit.parent);
-            }
-            if (commit.secondParent != null) {
-                if (ancestorsOfA.contains(commit.secondParent)) return commit.secondParent;
-                ancestorQueue.add(commit.secondParent);
-            }
+            if (ancestorsOfA.contains(commit)) return commit;
+            if (commit.parent != null) ancestorQueue.add(commit.parent);
+            if (commit.secondParent != null) ancestorQueue.add(commit.secondParent);
         }
         return null;
     }
